@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Connect Support Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #E72A28;
+            --primary-light: #E72A28;
+            --bg-light: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --bot-msg: #e2e8f0;
+            --accent: #e11d48;
+        }
+
+        body {
+            background-image: url('unnamed.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Launcher */
+        #chat-launcher {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #chat-launcher:hover { transform: scale(1.05); }
+
+        /* Chat Container */
+        #chat-container {
+            position: fixed;
+            bottom: 105px;
+            right: 25px;
+            width: 400px;
+            max-width: 90vw;
+            height: 530px;
+            max-height: 80vh;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .header-info p { font-size: 12px; opacity: 0.8; }
+
+        /* Messages Area */
+        #chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--bg-light);
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .bot-message {
+            background: var(--bot-msg);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .user-message {
+            background: var(--primary-light);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Suggestions & Menus */
+        .suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .suggestion-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: black;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .suggestion-btn i { width: 16px; text-align: center; }
+        .suggestion-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Action Row (Menu / End Chat) */
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .back-btn { background: #e2e8f0; border: #00AEEF 1px solid; color: #475569; }
+        .end-btn { background: #fee2e2; border: red 1px solid; color: #b91c1c; }
+
+        /* Input Area */
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            border: 1px solid #e2e8f0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #send-btn:hover { background: var(--primary-light); }
+    </style>
+</head>
+<body>
+   
+
+    <div id="chat-launcher" onclick="toggleChat()">
+        <i class="fas fa-comment-dots"></i>
+    </div>
+
+    <div id="chat-container">
+        <div class="chat-header">
+            <!--
+            <i class="fas fa-headset fa-2x"></i>
+            -->
+            <img src="download.png" alt="Arena Connect" style="width: 40px; height: 40px; border-radius: 50%;"/>
+            <div class="header-info">
+                <h3>Customer Care Support</h3>
+                <p><i class="fas fa-circle" style="color: #1ff76e; font-size: 8px;"></i> Online | Arena Connect</p>
+            </div>
+            <i class="fas fa-times" style="margin-left: auto; cursor: pointer;" onclick="toggleChat()"></i>
+        </div>
+
+        <div id="chat-window">
+            </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button id="send-btn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const faqData = [
+            { q: "start a subscription", a: "You can subscribe online via our website by selecting your preferred publication and subscription option. Once completed, you’ll receive a confirmation email. If you need assistance, contact Customer Care on 0860 52 52 00, email feedback@arena.africa or WhatsApp 083 252 1149." },
+            { q: "renew my subscription", a: "Subscriptions can be renewed online or via the renewal email sent to you. For help, contact Customer Care on 0860 52 52 00 or WhatsApp 083 252 1149." },
+            { q: "renewal email", a: "Click the link in the email and follow the steps to complete your renewal. If you experience any issues, contact Customer Care." },
+            { q: "update my delivery address", a: "You can update your delivery address on your profile. Alternatively contact Customer Care via phone, email (feedback@arena.africa), or WhatsApp (083 252 1149)." },
+            { q: "address change take effect", a: "Address changes usually take effect within approximately 2 business days." },
+            { q: "paper was not delivered", a: "Please report a missed delivery to Customer Care on 0860 52 52 00, email feedback@arena.africa or WhatsApp 083 252 1149." },
+            { q: "time should my paper be delivered", a: "Delivery times vary by area and distributor, but most publications are delivered before 10am on publication days." },
+            { q: "wrong publication", a: "Contact Customer Care and provide your subscriber details so the issue can be investigated." },
+            { q: "no publication on a specific date", a: "Some periods include planned publication breaks, such as public holidays. These are communicated where possible." },
+            { q: "payment methods", a: "Accepted payment methods include EFT, Credit Card or Debit Order. Our payment partner, Payfast, keeps your card information safe." },
+            { q: "debit order failed", a: "Please contact Customer Care to update your payment details and avoid service interruption." },
+            { q: "access the digital edition", a: "Use your subscription login details to access the digital edition via our website or app." },
+            { q: "forgot my password", a: "Select “Forgot Password” on the login page and follow the prompts. If you still need help, contact Customer Care." },
+            { q: "can’t log in", a: "Ensure you are using the correct email address used at subscription. If the issue persists, contact Customer Care." },
+            { q: "cancel my subscription", a: "Please contact Customer Care to process a cancellation. Notice periods may apply." },
+            { q: "refund", a: "Refunds depend on your subscription terms and conditions. Customer Care can advise." },
+            { q: "corporate subscriptions", a: "Corporate subscriptions are managed through invoicing or bulk arrangements. Customer Care can direct your query." },
+            { q: "contact customer care", a: "You can contact us via Phone: 0860 52 52 00, Email: feedback@arena.africa, or WhatsApp: 083 252 1149." }
+        ];
+
+        const categories = {
+            delivery: {
+                label: "Delivery & Address",
+                icon: "fa-truck",
+                questions: ["My paper was not delivered", "What time should my paper be delivered?", "I received the wrong publication", "How do I update my delivery address?", "When will my address change take effect?"]
+            },
+            subs: {
+                label: "Subscriptions",
+                icon: "fa-newspaper",
+                questions: ["How do I start a subscription?", "How do I renew my subscription?", "I received a renewal email", "How do I cancel my subscription?"]
+            },
+            billing: {
+                label: "Payments & Refunds",
+                icon: "fa-credit-card",
+                questions: ["What payment methods do you accept?", "My debit order failed", "Will I receive a refund if I cancel?"]
+            },
+            digital: {
+                label: "Digital Access",
+                icon: "fa-laptop",
+                questions: ["How do I access the digital edition?", "I forgot my password", "I can’t log in to my digital account"]
+            },
+            corp: {
+                label: "Corporate Queries",
+                icon: "fa-building",
+                questions: ["How do corporate subscriptions work?", "Who do I contact for corporate subscription queries?"]
+            }
+        };
+
+        function initChat() {
+            const window = document.getElementById('chat-window');
+            window.innerHTML = '';
+            const welcomeMsg = `Hello! 👋 How can we help you today? Please choose a category or type your question below.`;
+            addBotMessage(welcomeMsg, true);
+        }
+
+        function toggleChat() {
+            const container = document.getElementById('chat-container');
+            const isVisible = container.style.display === 'flex';
+            container.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible && document.getElementById('chat-window').innerHTML === '') {
+                initChat();
+            }
+        }
+
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function showMainMenu() {
+            addBotMessage("How else can I help you? Choose a category:", true);
+        }
+
+        function showCategory(catKey) {
+            const cat = categories[catKey];
+            addUserMessage(cat.label);
+            
+            setTimeout(() => {
+                const div = document.createElement('div');
+                div.className = `message bot-message`;
+                div.innerHTML = `<strong>${cat.label}</strong><br>Select a specific question:`;
+                
+                const sugDiv = document.createElement('div');
+                sugDiv.className = 'suggestions';
+                
+                cat.questions.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.className = 'suggestion-btn';
+                    btn.innerText = q;
+                    btn.onclick = () => askQuestion(q);
+                    sugDiv.appendChild(btn);
+                });
+                
+                div.appendChild(sugDiv);
+                appendAndScroll(div);
+            }, 400);
+        }
+
+        function askQuestion(text) {
+            addUserMessage(text);
+            setTimeout(() => {
+                const response = getBotResponse(text);
+                addBotMessage(response, false, true);
+            }, 600);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            input.value = '';
+
+            setTimeout(() => {
+                const response = getBotResponse(message);
+                addBotMessage(response, false, true);
+            }, 600);
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.innerText = text;
+            appendAndScroll(div);
+        }
+
+        function addBotMessage(text, isMain = false, showActions = false) {
+            const div = document.createElement('div');
+            div.className = 'message bot-message';
+            div.innerHTML = `<div>${text}</div>`;
+
+            if (isMain) {
+                const sugDiv = document.createElement('div');
+                sugDiv.className = 'suggestions';
+                for (const key in categories) {
+                    const btn = document.createElement('button');
+                    btn.className = 'suggestion-btn';
+                    btn.innerHTML = `<i class="fas ${categories[key].icon}"></i> ${categories[key].label}`;
+                    btn.onclick = () => showCategory(key);
+                    sugDiv.appendChild(btn);
+                }
+                const contactBtn = document.createElement('button');
+                contactBtn.className = 'suggestion-btn';
+                contactBtn.innerHTML = `<i class="fas fa-phone"></i> Contact Customer Care`;
+                contactBtn.onclick = () => askQuestion("How do I contact Customer Care?");
+                sugDiv.appendChild(contactBtn);
+                div.appendChild(sugDiv);
+            }
+
+            if (showActions) {
+                const actionRow = document.createElement('div');
+                actionRow.className = 'action-row';
+                actionRow.innerHTML = `
+                    <button style="margin-top:10px;padding: 10px 15px;" class="action-btn back-btn" onclick="showMainMenu()"><i class="fas fa-arrow-left"></i> Main Menu</button>
+                    <button style="margin-top:10px;padding: 10px 15px;" class="action-btn end-btn" onclick="endChat()"><i class="fas fa-times"></i> End Chat</button>
+                `;
+                div.appendChild(actionRow);
+            }
+
+            appendAndScroll(div);
+        }
+
+        function appendAndScroll(el) {
+            const window = document.getElementById('chat-window');
+            window.appendChild(el);
+            window.scrollTop = window.scrollHeight;
+        }
+
+        function getBotResponse(input) {
+            const query = input.toLowerCase();
+            const match = faqData.find(item => query.includes(item.q.toLowerCase()) || item.q.toLowerCase().includes(query));
+            return match ? match.a : "Please click 'Menu' below and select a category or call 0860 52 52 00.";
+        }
+
+        function endChat() {
+            addUserMessage("End Chat");
+            setTimeout(() => {
+                addBotMessage("Goodbye! 👋 Closing chat...");
+                setTimeout(() => {
+                    toggleChat();
+                    document.getElementById('chat-window').innerHTML = '';
+                }, 1200);
+            }, 400);
+        }
+
+        window.onload = initChat;
+    </script>
+</body>
+</html>
